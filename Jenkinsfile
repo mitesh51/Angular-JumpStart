@@ -8,26 +8,13 @@ pipeline {
 		}
 	} 
 	stages {
-		stage('Static Code Analysis') {
-			steps {
-			    container('node') { 
-                    echo "Steps to execute SCA"
-                    sh 'wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip'
-                    sh 'unzip sonar-scanner-cli-3.3.0.1492-linux.zip'
-    				withSonarQubeEnv(installationName: 'SonarQube', credentialsId: 'SonarToken') {
-    				  sh 'ls -l'
-    				  sh 'sonar-scanner-3.3.0.1492-linux/bin/sonar-scanner -Dsonar.projectVersion=1.0 -Dsonar.projectKey=sample-angular-app -Dsonar.sources=src'
-    				}
-				    waitForQualityGate(abortPipeline: true, credentialsId: 'SonarToken')
-			    }
-			}
-		}
+
 		stage('UnitTests & Coverage') {
 			steps {
 				container('chrome') {
 					echo "Steps to execute Unit Tests"
 					catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-						sh 'npm install && npm install karma-junit-reporter --save-dev && npm run test --progress false --watch false'
+						sh 'npm install && npm install karma-junit-reporter --save-dev && npm audit fix && npm run test --progress false --watch false'
 					}
 				}
 			}		
